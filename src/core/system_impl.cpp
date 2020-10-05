@@ -216,43 +216,12 @@ void SystemImpl::process_statustext(const mavlink_message_t& message)
     mavlink_statustext_t statustext;
     mavlink_msg_statustext_decode(&message, &statustext);
 
-    std::string debug_str = "MAVLink: ";
+    const auto result_severity = _statustext_handler.process_severity(statustext);
+    const auto result_text = _statustext_handler.process_text(statustext);
 
-    switch (statustext.severity) {
-        case MAV_SEVERITY_EMERGENCY:
-            debug_str += "emergency";
-            break;
-        case MAV_SEVERITY_ALERT:
-            debug_str += "alert";
-            break;
-        case MAV_SEVERITY_CRITICAL:
-            debug_str += "critical";
-            break;
-        case MAV_SEVERITY_ERROR:
-            debug_str += "error";
-            break;
-        case MAV_SEVERITY_WARNING:
-            debug_str += "warning";
-            break;
-        case MAV_SEVERITY_NOTICE:
-            debug_str += "notice";
-            break;
-        case MAV_SEVERITY_INFO:
-            debug_str += "info";
-            break;
-        case MAV_SEVERITY_DEBUG:
-            debug_str += "debug";
-            break;
-        default:
-            break;
+    if (result_severity.first && result_text.first) {
+        LogDebug() << "MAVLink: " + result_severity.second + ": " + result_text.second;
     }
-
-    // statustext.text is not null terminated, therefore we copy it first to
-    // an array big enough that is zeroed.
-    char text_with_null[sizeof(statustext.text) + 1]{};
-    memcpy(text_with_null, statustext.text, sizeof(statustext.text));
-
-    LogDebug() << debug_str << ": " << text_with_null;
 }
 
 void SystemImpl::heartbeats_timed_out()
@@ -614,6 +583,11 @@ MAVLinkParameters::Result SystemImpl::set_param_int(const std::string& name, int
     param_value.set_int32(value);
 
     return _params.set_param(name, param_value, false);
+}
+
+std::map<std::string, MAVLinkParameters::ParamValue> SystemImpl::get_all_params()
+{
+    return _params.get_all_params();
 }
 
 MAVLinkParameters::Result SystemImpl::set_param_ext_float(const std::string& name, float value)

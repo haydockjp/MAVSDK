@@ -7,6 +7,7 @@
 #include "mavlink_commands.h"
 #include "mavlink_message_handler.h"
 #include "mavlink_mission_transfer.h"
+#include "mavlink_statustext_handler.h"
 #include "timeout_handler.h"
 #include "call_every_handler.h"
 #include "safe_queue.h"
@@ -130,6 +131,7 @@ public:
     MAVLinkParameters::Result set_param_int(const std::string& name, int32_t value);
     MAVLinkParameters::Result set_param_ext_float(const std::string& name, float value);
     MAVLinkParameters::Result set_param_ext_int(const std::string& name, int32_t value);
+    std::map<std::string, MAVLinkParameters::ParamValue> get_all_params();
 
     typedef std::function<void(MAVLinkParameters::Result result)> success_t;
     void set_param_float_async(
@@ -279,6 +281,8 @@ private:
 
     // Needs to be before anything else because they can depend on it.
     MAVLinkMessageHandler _message_handler{};
+
+    MavlinkStatustextHandler _statustext_handler{};
 
     uint64_t _uuid{0};
 
